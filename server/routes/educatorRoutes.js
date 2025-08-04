@@ -1,25 +1,32 @@
 import express from 'express'
-import { addCourse, educatorDashboardData, getEducatorCourses, getEnrolledStudentsData, requestEducatorRole } from '../controllers/educatorController.js';
-import upload from '../configs/multer.js';
-import { protectEducator } from '../middlewares/authMiddleware.js';
-
+import { 
+  addCourse, 
+  educatorDashboardData, 
+  getEducatorCourses, 
+  getEnrolledStudentsData, 
+  requestEducatorRole 
+} from '../controllers/educatorController.js'
+import upload from '../configs/multer.js'
+import { protectEducator, protectUser } from '../middlewares/authMiddleware.js'
 
 const educatorRouter = express.Router()
 
-// Request Educator Role 
-educatorRouter.post('/request-role', requestEducatorRole)
+// Public routes (require basic authentication)
+educatorRouter.post('/request-role', protectUser, requestEducatorRole)
 
-// Add Courses 
+// Protected educator routes (require educator role)
 educatorRouter.post('/add-course', upload.single('image'), protectEducator, addCourse)
-
-// Get Educator Courses 
 educatorRouter.get('/courses', protectEducator, getEducatorCourses)
-
-// Get Educator Dashboard Data
 educatorRouter.get('/dashboard', protectEducator, educatorDashboardData)
-
-// Get Educator Students Data
 educatorRouter.get('/enrolled-students', protectEducator, getEnrolledStudentsData)
 
+// Health check for educator routes
+educatorRouter.get('/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Educator routes are working',
+    timestamp: new Date().toISOString()
+  })
+})
 
-export default educatorRouter;
+export default educatorRouter
